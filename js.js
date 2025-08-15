@@ -1,62 +1,109 @@
 const canvas = document.querySelector('.particles');
 const ctx = canvas.getContext('2d');
 
-let starsArray = [];
+let particlesArray = [];
+let mouse = {
+    x: null,
+    y: null,
+    radius: 100
+};
 
-// Initialiser canvas
-function initCanvas() {
+// Redimensionner le canvas
+function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
-window.addEventListener('resize', initCanvas);
-initCanvas();
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-// Classe étoile
-class Star {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-        this.speedY = Math.random() * 0.5 + 0.2;
-        this.opacity = Math.random();
-        this.opacitySpeed = Math.random() * 0.02;
-    }
+// Suivi de la souris
+window.addEventListener('mousemove', function(event){
+    mouse.x = event.x;
+    mouse.y = event.y;
+});
 
-    update() {
-        this.y += this.speedY;
-        if (this.y > canvas.height) {
-            this.y = 0;
-            this.x = Math.random() * canvas.width;
-        }
-        this.opacity += this.opacitySpeed;
-        if(this.opacity > 1) this.opacity = 0;
+// Classe particule
+class Particle {
+    constructor(x, y, size, color, speedX, speedY) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.color = color;
+        this.speedX = speedX;
+        this.speedY = speedY;
     }
 
     draw() {
-        ctx.fillStyle = `rgba(255,255,255,${this.opacity})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
         ctx.fill();
+    }
+
+    update() {
+        // Déplacement
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // Réaction à la souris
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx*dx + dy*dy);
+        if(distance < mouse.radius) {
+            let angle = Math.atan2(dy, dx);
+            let repel = (mouse.radius - distance)/10;
+            this.x -= Math.cos(angle) * repel;
+            this.y -= Math.sin(angle) * repel;
+        }
+
+        // Rebondir sur les bords
+        if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+        this.draw();
     }
 }
 
-// Initialiser étoiles
-function initStars(count = 200) {
-    starsArray = [];
-    for(let i = 0; i < count; i++) {
-        starsArray.push(new Star());
+// Créer les particules
+function initParticles(num=120) {
+    particlesArray = [];
+    for(let i = 0; i < num; i++){
+        let size = Math.random() * 3 + 1;
+        let x = Math.random() * canvas.width;
+        let y = Math.random() * canvas.height;
+        let speedX = (Math.random() - 0.5) * 1.2;
+        let speedY = (Math.random() - 0.5) * 1.2;
+        let color = `rgba(${50 + Math.random()*50}, ${50 + Math.random()*50}, ${50 + Math.random()*50}, 0.8)`;
+        particlesArray.push(new Particle(x, y, size, color, speedX, speedY));
     }
 }
-initStars();
+
+// Relier les particules proches entre elles
+function connectParticles() {
+    for(let a = 0; a < particlesArray.length; a++){
+        for(let b = a; b < particlesArray.length; b++){
+            let dx = particlesArray[a].x - particlesArray[b].x;
+            let dy = particlesArray[a].y - particlesArray[b].y;
+            let distance = Math.sqrt(dx*dx + dy*dy);
+            if(distance < 120){
+                ctx.strokeStyle = `rgba(200,200,200,${1 - distance/120})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                ctx.stroke();
+            }
+        }
+    }
+}
 
 // Animation
 function animate() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    starsArray.forEach(star => {
-        star.update();
-        star.draw();
-    });
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particlesArray.forEach(p => p.update());
+    connectParticles();
     requestAnimationFrame(animate);
 }
 
+initParticles();
 animate();
