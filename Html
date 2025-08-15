@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fond dégradé + particules</title>
+  <style>
+    /* ====== RESET MINIMAL ====== */
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      overflow: hidden; /* évite le scroll avec l'anim */
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: white;
+    }
+
+    /* ====== DÉGRADÉ ANIMÉ ====== */
+    .gradient {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg,
+        #0a1f44 0%,
+        #4da3ff 50%,
+        #0b2e59 100%
+      );
+      background-size: 200% 200%;
+      animation: moveGradient 18s ease-in-out infinite;
+      /* léger flou pour une vibe "néon doux" (optionnel) */
+      filter: saturate(1.1);
+    }
+    @keyframes moveGradient {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ====== CANVAS DES PARTICULES ====== */
+    canvas.particles {
+      position: fixed;
+      inset: 0;
+      display: block;
+      pointer-events: none; /* clics passent au travers */
+    }
+
+    /* ====== CONTENU (facultatif) ====== */
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 2rem;
+      backdrop-filter: none; /* tu peux mettre 'blur(2px)' si tu veux */
+    }
+    .tagline {
+      font-size: clamp(1.3rem, 2.5vw + 1rem, 3rem);
+      font-weight: 700;
+      line-height: 1.1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+    .sub {
+      opacity: 0.85;
+      margin-top: .75rem;
+      font-weight: 500;
+    }
+
+    /* Accessibilité: si l’utilisateur préfère moins d’animations */
+    @media (prefers-reduced-motion: reduce) {
+      .gradient { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient" aria-hidden="true"></div>
+  <canvas class="particles" aria-hidden="true"></canvas>
+
+  <!-- Contenu au-dessus du fond (modifie/retire si tu veux) -->
+  <main class="content">
+    <div>
+      <div class="tagline">Dégradé bleu avec particules</div>
+      <div class="sub">GitHub Pages — HTML/CSS/JS pur</div>
+    </div>
+  </main>
+
+  <script>
+    // ====== PARAMS FACILES À MODIFIER ======
+    const CONFIG = {
+      particleCountBase: 90,     // nombre de particules sur un écran 1920x1080
+      sizeMin: 0.8,              // rayon min (px)
+      sizeMax: 2.6,              // rayon max (px)
+      speedMin: 0.06,            // vitesse min (px/frame)
+      speedMax: 0.45,            // vitesse max (px/frame)
+      lineLink: false,           // relier avec des lignes (true/false)
+      linkDistance: 110,         // distance max pour relier (px)
+      opacityMin: 0.25,
+      opacityMax: 0.9,
+      twinkle: true,             // scintillement léger
+    };
+
+    const canvas = document.querySelector('canvas.particles');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    let particles = [];
+    let width = 0, height = 0, dpi = Math.max(1, window.devicePixelRatio || 1);
+
+    // Ajuste le nombre de particules selon la surface et le DPI
+    function desiredParticleCount() {
+      const baseArea = 1920 * 1080;
+      const area = width * height;
+      // on limite pour éviter l’explosion sur écrans 4K
+      return Math.min(200, Math.max(30, Math.round(CONFIG.particleCountBase * (area / baseArea))));
+    }
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas.width = Math.floor(width * dpi);
+      canvas.height = Math.floor(height * dpi);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpi, 0, 0, dpi, 0, 0);
+
+      const target = desiredParticleCount();
+      if (particles.length < target) {
+        addParticles(target - particles.length);
+      } else if (particles.length > target) {
+        particles.length = target;
+      }
+    }
+    window.addEventListener('resize', resize, { passive: true });
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function makeParticle() {
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: rand(CONFIG.sizeMin, CONFIG.sizeMax),
+        vx: rand(-CONFIG.speedMax, CONFIG.speedMax),
+        vy: rand(-CONFIG.speedMax, CONFIG.speedMax),
+        o: rand(CONFIG.opacityMin, CONFIG.opacityMax),
+        oDir: Math.random() < 0.5 ? -1 : 1, // direction du scintillement
+      };
+    }
+
+    function addParticles(n) {
+      for (let i = 0; i < n; i++) particles.push(makeParticle());
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Dessin des particules
+      for (let p of particles) {
+        // move
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // wrap edges
+        if (p.x < -p.r) p.x = width + p.r;
+        if (p.x > width + p.r) p.x = -p.r;
+        if (p.y < -p.r) p.y = height + p.r;
+        if (p.y > height + p.r) p.y = -p.r;
+
+        // twinkle
+        if (CONFIG.twinkle) {
+          p.o += p.oDir * 0.005;
+          if (p.o < CONFIG.opacityMin) { p.o = CONFIG.opacityMin; p.oDir = 1; }
+          if (p.o > CONFIG.opacityMax) { p.o = CONFIG.opacityMax; p.oDir = -1; }
+        }
+
+        // dessine
+        ctx.globalAlpha = p.o;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        // dégradé radial léger pour de la douceur
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
+        g.addColorStop(0, 'rgba(255,255,255,0.95)');
+        g.addColorStop(1, 'rgba(255,255,255,0.0)');
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+
+      // lignes de liaison (optionnel)
+      if (CONFIG.lineLink) {
+        ctx.globalAlpha = 0.08;
+        ctx.beginPath();
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d2 = dx * dx + dy * dy;
+            const max = CONFIG.linkDistance;
+            if (d2 < max * max) {
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+            }
+          }
+        }
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // Respecte le paramètre "prefers-reduced-motion"
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      CONFIG.twinkle = false;
+      CONFIG.speedMax = 0.05;
+    }
+
+    // Boot
+    resize();
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>
