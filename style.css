@@ -76,11 +76,11 @@ h1 {
   }
 }
 
-/* Menu gris */
+/* Menu gris foncé clair */
 .menu {
   display: flex;
   gap: 20px;
-  background-color: rgba(100, 100, 100, 0.6);
+  background-color: rgba(50, 50, 50, 0.8); /* gris foncé clair */
   padding: 15px 25px;
   border-radius: 12px;
 }
@@ -94,18 +94,37 @@ h1 {
   gap: 8px;
 }
 
-/* Point clignotant */
+/* Points clignotants avec halo lumineux */
 .dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   display: inline-block;
-  animation: blink 1s infinite;
+  position: relative;
+  animation: blinkHalo 1.2s infinite;
+}
+.dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  background-color: inherit;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(4px);
+  opacity: 0.5;
+  animation: pulse 1.2s infinite;
 }
 .dot.green { background-color: #00ff00; }
 .dot.red { background-color: #ff0000; }
 
-@keyframes blink {
+@keyframes blinkHalo {
   0%, 50%, 100% { opacity: 1; }
-  25%, 75% { opacity: 0.2; }
+  25%, 75% { opacity: 0.3; }
+}
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.2; }
 }
