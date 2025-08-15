@@ -1,82 +1,59 @@
-const CONFIG = {
-  particleCountBase: 90,
-  sizeMin: 0.8,
-  sizeMax: 2.6,
-  speedMin: 0.06,
-  speedMax: 0.45,
-  opacityMin: 0.25,
-  opacityMax: 0.9,
-  twinkle: true,
-};
+const canvas = document.querySelector('.particles');
+const ctx = canvas.getContext('2d');
 
-const canvas = document.querySelector('canvas.particles');
-const ctx = canvas.getContext('2d', { alpha: true });
-let particles = [];
-let width = 0, height = 0, dpi = Math.max(1, window.devicePixelRatio || 1);
+let particlesArray = [];
+const colors = ['#00eaff', '#0ff', '#00f', '#0af'];
 
-function desiredParticleCount() {
-  const baseArea = 1920 * 1080;
-  const area = width * height;
-  return Math.min(200, Math.max(30, Math.round(CONFIG.particleCountBase * (area / baseArea))));
+function initCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
+window.addEventListener('resize', initCanvas);
+initCanvas();
 
-function resize() {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = Math.floor(width * dpi);
-  canvas.height = Math.floor(height * dpi);
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
-  ctx.setTransform(dpi, 0, 0, dpi, 0, 0);
-  const target = desiredParticleCount();
-  if (particles.length < target) addParticles(target - particles.length);
-  else if (particles.length > target) particles.length = target;
-}
-window.addEventListener('resize', resize, { passive: true });
-
-function rand(a, b) { return a + Math.random() * (b - a); }
-function makeParticle() {
-  return {
-    x: Math.random() * width,
-    y: Math.random() * height,
-    r: rand(CONFIG.sizeMin, CONFIG.sizeMax),
-    vx: rand(-CONFIG.speedMax, CONFIG.speedMax),
-    vy: rand(-CONFIG.speedMax, CONFIG.speedMax),
-    o: rand(CONFIG.opacityMin, CONFIG.opacityMax),
-    oDir: Math.random() < 0.5 ? -1 : 1,
-  };
-}
-function addParticles(n) {
-  for (let i = 0; i < n; i++) particles.push(makeParticle());
-}
-
-function step() {
-  ctx.clearRect(0, 0, width, height);
-  for (let p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    if (p.x < -p.r) p.x = width + p.r;
-    if (p.x > width + p.r) p.x = -p.r;
-    if (p.y < -p.r) p.y = height + p.r;
-    if (p.y > height + p.r) p.y = -p.r;
-
-    if (CONFIG.twinkle) {
-      p.o += p.oDir * 0.005;
-      if (p.o < CONFIG.opacityMin) { p.o = CONFIG.opacityMin; p.oDir = 1; }
-      if (p.o > CONFIG.opacityMax) { p.o = CONFIG.opacityMax; p.oDir = -1; }
+// Création des particules
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 1 - 0.5;
+        this.speedY = Math.random() * 1 - 0.5;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
     }
 
-    ctx.globalAlpha = p.o;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
-    g.addColorStop(0, 'rgba(255,255,255,0.95)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fill();
-  }
-  requestAnimationFrame(step);
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // Rebondir sur les bords
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
-resize();
-requestAnimationFrame(step);
+function initParticles(count = 100) {
+    particlesArray = [];
+    for (let i = 0; i < count; i++) {
+        particlesArray.push(new Particle());
+    }
+}
+initParticles();
+
+// Animation
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particlesArray.forEach(p => {
+        p.update();
+        p.draw();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
