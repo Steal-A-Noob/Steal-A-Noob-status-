@@ -17,7 +17,7 @@ class Star {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * 2 + 1;
-        this.speedY = Math.random() * 0.5 + 0.2; // tombe doucement
+        this.speedY = Math.random() * 0.5 + 0.2;
         this.opacity = Math.random();
         this.opacitySpeed = Math.random() * 0.02;
     }
@@ -28,7 +28,6 @@ class Star {
             this.y = 0;
             this.x = Math.random() * canvas.width;
         }
-        // variation d'opacité pour scintiller
         this.opacity += this.opacitySpeed;
         if(this.opacity > 1) this.opacity = 0;
     }
