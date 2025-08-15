@@ -4,92 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Steal A Noob Status</title>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
-    body {
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      color: white;
-    }
-
-    /* Fond dégradé animé */
-    .gradient {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg,
-        #0a1f44 0%,
-        #4da3ff 50%,
-        #0b2e59 100%
-      );
-      background-size: 200% 200%;
-      animation: moveGradient 18s ease-in-out infinite;
-    }
-    @keyframes moveGradient {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Canvas des particules */
-    canvas.particles {
-      position: fixed;
-      inset: 0;
-      display: block;
-      pointer-events: none;
-    }
-
-    /* Titre flottant + effet néon */
-    .content {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-    }
-    h1 {
-      font-size: clamp(2rem, 5vw, 4rem);
-      font-weight: bold;
-      animation: float 3s ease-in-out infinite, glow 2s ease-in-out infinite alternate;
-      color: #00eaff;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes glow {
-      from {
-        text-shadow:
-          0 0 5px #00eaff,
-          0 0 10px #00eaff,
-          0 0 20px #00eaff,
-          0 0 40px #00eaff;
-      }
-      to {
-        text-shadow:
-          0 0 10px #00eaff,
-          0 0 20px #00eaff,
-          0 0 40px #00ffff,
-          0 0 80px #00ffff;
-      }
-    }
-  </style>
+  <!-- Lien vers ton fichier CSS séparé -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Fond dégradé -->
   <div class="gradient"></div>
+
   <!-- Particules -->
   <canvas class="particles"></canvas>
+
   <!-- Titre -->
   <div class="content">
     <h1>Steal A Noob Status</h1>
   </div>
 
+  <!-- Script des particules -->
   <script>
     const CONFIG = {
       particleCountBase: 90,
