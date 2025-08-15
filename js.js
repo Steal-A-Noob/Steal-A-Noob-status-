@@ -2,9 +2,10 @@ const canvas = document.querySelector('.particles');
 const ctx = canvas.getContext('2d');
 
 let particlesArray = [];
-const colors = ['#00eaff', '#0ff', '#00f', '#0af'];
-const maxDistance = 120;
+const colors = ['#aaaaaa', '#cccccc', '#ffffff']; // gris clair/blanc
+const maxDistance = 120; // distance pour relier les particules
 
+// Initialisation du canvas
 function initCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -12,14 +13,14 @@ function initCanvas() {
 window.addEventListener('resize', initCanvas);
 initCanvas();
 
-// Particule
+// Classe Particule
 class Particle {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 1 - 0.5;
-        this.speedY = Math.random() * 1 - 0.5;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = Math.random() * 0.3 - 0.15; // déplacement plus lent
+        this.speedY = Math.random() * 0.3 - 0.15;
         this.color = colors[Math.floor(Math.random() * colors.length)];
     }
 
@@ -27,6 +28,7 @@ class Particle {
         this.x += this.speedX;
         this.y += this.speedY;
 
+        // Rebondir sur les bords
         if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
         if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
     }
@@ -34,11 +36,12 @@ class Particle {
     draw() {
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 
+// Initialiser les particules
 function initParticles(count = 120) {
     particlesArray = [];
     for (let i = 0; i < count; i++) {
@@ -47,16 +50,16 @@ function initParticles(count = 120) {
 }
 initParticles();
 
-// Relier particules proches
+// Relier les particules proches avec des lignes subtiles
 function connectParticles() {
     for (let a = 0; a < particlesArray.length; a++) {
         for (let b = a; b < particlesArray.length; b++) {
             let dx = particlesArray[a].x - particlesArray[b].x;
             let dy = particlesArray[a].y - particlesArray[b].y;
-            let distance = Math.sqrt(dx*dx + dy*dy);
+            let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < maxDistance) {
-                ctx.strokeStyle = `rgba(0,255,255,${1 - distance/maxDistance})`;
-                ctx.lineWidth = 0.8;
+                ctx.strokeStyle = `rgba(200, 200, 200, ${1 - distance / maxDistance})`;
+                ctx.lineWidth = 0.7;
                 ctx.beginPath();
                 ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
                 ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
@@ -66,7 +69,7 @@ function connectParticles() {
     }
 }
 
-// Animation
+// Animation des particules
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particlesArray.forEach(p => {
@@ -76,4 +79,5 @@ function animate() {
     connectParticles();
     requestAnimationFrame(animate);
 }
+
 animate();
