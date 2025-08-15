@@ -128,7 +128,7 @@ h1 {
     50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.2; }
 }
 
-/* Texte en bas de page */
+/* Footer en bas de page */
 .footer-text {
     position: fixed;
     bottom: 15px;
@@ -139,4 +139,27 @@ h1 {
     font-weight: 500;
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
     z-index: 10;
+}
+
+/* Bouton en haut à droite */
+.top-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #444;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+    z-index: 20;
+}
+
+.top-button:hover {
+    background-color: #666;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
 }
