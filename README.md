@@ -1,1 +1,1 @@
-# Steal-A-Noob-status-
+# Steal-A-Noob-status.
